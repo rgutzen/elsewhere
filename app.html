@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elsewhere</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:      #090708;
+    --surface: #110e0f;
+    --surface2:#1c1719;
+    --border:  rgba(255,255,255,0.055);
+    --accent:  #c9a87c;
+    --blue:    #7c8a9e;
+    --warm:    #b87c7c;
+    --dim:     rgba(201,168,124,0.08);
+    --text:    #d8d0c8;
+    --text2:   #7a7068;
+    --text3:   #4a4440;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans:  'Inter', -apple-system, sans-serif;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction:column;
+    overflow-x:hidden;
+  }
+
+  /* Grain */
+  body::before {
+    content:''; position:fixed; inset:0; z-index:999; pointer-events:none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity:0.45;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    padding:24px 40px;
+    display:flex; align-items:center; justify-content:space-between;
+    border-bottom:1px solid var(--border);
+    position:sticky; top:0; z-index:50;
+    background: rgba(9,7,8,0.92);
+    backdrop-filter:blur(16px);
+  }
+  .logo {
+    font-family:var(--serif); font-size:20px; font-weight:700;
+    color:var(--text); text-decoration:none; letter-spacing:0.3px;
+  }
+  .header-right {
+    display:flex; align-items:center; gap:24px;
+  }
+  .saved-btn {
+    font-size:12px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--text3); background:none; border:none;
+    cursor:pointer; transition:color 0.2s; font-family:var(--sans);
+    position:relative;
+  }
+  .saved-btn:hover { color:var(--text2); }
+  .saved-badge {
+    position:absolute; top:-4px; right:-10px;
+    width:16px; height:16px; border-radius:50%;
+    background:var(--accent); color:#0a0708;
+    font-size:9px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity 0.3s;
+  }
+  .saved-badge.show { opacity:1; }
+  .back-link {
+    font-size:12px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--text3); text-decoration:none; transition:color 0.2s;
+  }
+  .back-link:hover { color:var(--text2); }
+
+  /* ---- MAIN ---- */
+  main {
+    flex:1; display:flex; flex-direction:column;
+    padding:48px 40px 80px;
+    max-width: 720px; margin:0 auto; width:100%;
+  }
+
+  /* ---- MODE SWITCHER ---- */
+  .mode-switcher {
+    display:flex; gap:0; margin-bottom:52px;
+    border:1px solid var(--border); border-radius:3px;
+    overflow:hidden; background:var(--surface);
+  }
+  .mode-btn {
+    flex:1; padding:14px 16px;
+    background:none; border:none;
+    font-family:var(--sans); font-size:13px; font-weight:500;
+    cursor:pointer; transition:all 0.2s;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    border-right:1px solid var(--border); position:relative;
+    color:var(--text3);
+  }
+  .mode-btn:last-child { border-right:none; }
+  .mode-btn .mode-indicator {
+    width:6px; height:6px; border-radius:50%;
+    background:var(--text3); transition:background 0.2s;
+  }
+  .mode-btn .mode-name { letter-spacing:1.5px; text-transform:uppercase; font-size:11px; }
+  .mode-btn .mode-hint { font-size:11px; color:var(--text3); line-height:1.4; text-align:center; }
+
+  .mode-btn.active[data-mode="stranger"] {
+    background: rgba(201,168,124,0.06); color:var(--accent);
+  }
+  .mode-btn.active[data-mode="stranger"] .mode-indicator { background:var(--accent); }
+
+  .mode-btn.active[data-mode="friend"] {
+    background: rgba(124,138,158,0.06); color:var(--blue);
+  }
+  .mode-btn.active[data-mode="friend"] .mode-indicator { background:var(--blue); }
+
+  .mode-btn.active[data-mode="self"] {
+    background: rgba(184,124,124,0.06); color:var(--warm);
+  }
+  .mode-btn.active[data-mode="self"] .mode-indicator { background:var(--warm); }
+
+  /* ---- PROMPT CARD ---- */
+  .prompt-area {
+    flex:1;
+    display:flex; flex-direction:column;
+  }
+
+  .prompt-card {
+    position:relative;
+    border:1px solid var(--border);
+    border-radius:4px;
+    padding:52px 44px;
+    background:var(--surface);
+    min-height:280px;
+    display:flex; flex-direction:column; justify-content:space-between;
+    overflow:hidden;
+    transition: border-color 0.4s;
+  }
+  .prompt-card::before {
+    content:''; position:absolute; top:0; left:0; right:0;
+    height:2px;
+    background:linear-gradient(90deg, transparent, var(--card-accent, var(--accent)), transparent);
+    opacity:0.4;
+  }
+  .prompt-card[data-mode="stranger"] { --card-accent: var(--accent); }
+  .prompt-card[data-mode="friend"]   { --card-accent: var(--blue); }
+  .prompt-card[data-mode="self"]     { --card-accent: var(--warm); }
+
+  .prompt-card[data-mode="stranger"] { border-color: rgba(201,168,124,0.1); }
+  .prompt-card[data-mode="friend"]   { border-color: rgba(124,138,158,0.1); }
+  .prompt-card[data-mode="self"]     { border-color: rgba(184,124,124,0.1); }
+
+  .prompt-mode-label {
+    font-size:10px; letter-spacing:3px; text-transform:uppercase;
+    font-weight:600; margin-bottom:28px;
+    opacity:0.7;
+  }
+  [data-mode="stranger"] .prompt-mode-label { color:var(--accent); }
+  [data-mode="friend"]   .prompt-mode-label { color:var(--blue); }
+  [data-mode="self"]     .prompt-mode-label { color:var(--warm); }
+
+  .prompt-quote-mark {
+    position:absolute; top:40px; right:36px;
+    font-family:var(--serif); font-size:96px; font-weight:700;
+    color:var(--text3); opacity:0.15; line-height:1;
+    pointer-events:none; user-select:none;
+  }
+
+  .prompt-text {
+    font-family:var(--serif);
+    font-size:clamp(20px, 3.5vw, 30px);
+    font-weight:400; font-style:italic;
+    line-height:1.45; color:var(--text);
+    position:relative; z-index:1;
+    flex:1; display:flex; align-items:center;
+    transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+  }
+  .prompt-text.fading {
+    opacity:0; transform:translateY(10px);
+  }
+  .prompt-text.entering {
+    opacity:0; transform:translateY(-8px);
+    transition:none;
+  }
+
+  .prompt-meta {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-top:36px; padding-top:20px;
+    border-top:1px solid var(--border);
+  }
+  .prompt-context {
+    font-size:12px; color:var(--text3); line-height:1.5;
+    max-width:340px;
+  }
+  .save-btn {
+    background:none; border:1px solid var(--border);
+    border-radius:2px; padding:8px 16px;
+    font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--text3); cursor:pointer; font-family:var(--sans);
+    transition:all 0.2s; white-space:nowrap; flex-shrink:0;
+    margin-left:16px;
+  }
+  .save-btn:hover {
+    border-color:rgba(255,255,255,0.15); color:var(--text);
+  }
+  .save-btn.saved {
+    border-color:rgba(201,168,124,0.3); color:var(--accent);
+    background:rgba(201,168,124,0.05);
+  }
+
+  /* ---- ACTIONS ---- */
+  .prompt-actions {
+    display:flex; gap:12px; margin-top:20px;
+  }
+  .action-btn {
+    flex:1; padding:18px;
+    border:1px solid var(--border); border-radius:3px;
+    background:none; cursor:pointer;
+    font-family:var(--sans); font-size:13px; font-weight:500;
+    color:var(--text2); letter-spacing:0.3px;
+    transition:all 0.2s;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .action-btn:hover {
+    border-color:rgba(255,255,255,0.12);
+    color:var(--text); background:rgba(255,255,255,0.02);
+  }
+  .action-btn.primary {
+    border-color:rgba(201,168,124,0.25);
+    color:var(--accent);
+    background:rgba(201,168,124,0.04);
+  }
+  .action-btn.primary:hover {
+    border-color:rgba(201,168,124,0.45);
+    background:rgba(201,168,124,0.08);
+    box-shadow:0 4px 24px rgba(201,168,124,0.08);
+  }
+  .action-btn svg { flex-shrink:0; }
+
+  /* ---- COUNTER ---- */
+  .session-counter {
+    display:flex; align-items:center; justify-content:center;
+    gap:24px; margin-top:40px; padding-top:40px;
+    border-top:1px solid var(--border);
+  }
+  .counter-item {
+    text-align:center;
+  }
+  .counter-num {
+    font-family:var(--serif); font-size:32px; font-weight:700;
+    color:var(--text3); display:block;
+    transition:color 0.4s, transform 0.3s;
+  }
+  .counter-num.changed {
+    color:var(--accent); transform:scale(1.1);
+  }
+  .counter-label { font-size:11px; color:var(--text3); letter-spacing:1.5px; text-transform:uppercase; margin-top:4px; }
+  .counter-divider { width:1px; height:36px; background:var(--border); }
+
+  /* ---- SAVED PANEL ---- */
+  .saved-panel {
+    position:fixed; top:0; right:0; bottom:0;
+    width:min(400px, 100vw);
+    background:var(--surface);
+    border-left:1px solid var(--border);
+    z-index:200;
+    transform:translateX(100%);
+    transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    display:flex; flex-direction:column;
+  }
+  .saved-panel.open { transform:translateX(0); }
+
+  .panel-overlay {
+    position:fixed; inset:0; z-index:199;
+    background:rgba(9,7,8,0.7);
+    backdrop-filter:blur(4px);
+    opacity:0; pointer-events:none;
+    transition:opacity 0.35s;
+  }
+  .panel-overlay.show { opacity:1; pointer-events:all; }
+
+  .panel-header {
+    padding:24px 28px;
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .panel-title {
+    font-family:var(--serif); font-size:18px; font-weight:700;
+  }
+  .panel-close {
+    background:none; border:none; cursor:pointer;
+    color:var(--text2); padding:4px; transition:color 0.2s;
+  }
+  .panel-close:hover { color:var(--text); }
+
+  .panel-body {
+    flex:1; overflow-y:auto; padding:24px 28px;
+    scrollbar-width:thin; scrollbar-color:var(--border) transparent;
+  }
+  .panel-empty {
+    text-align:center; padding:60px 0;
+    color:var(--text3); font-size:14px; line-height:1.8;
+  }
+  .panel-empty em {
+    font-family:var(--serif); font-style:italic;
+    font-size:18px; display:block; margin-bottom:8px;
+  }
+
+  .saved-item {
+    border:1px solid var(--border); border-radius:3px;
+    padding:20px; margin-bottom:12px;
+    position:relative;
+    animation:slideIn 0.3s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity:0; transform:translateX(16px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+  .saved-item-mode {
+    font-size:9px; letter-spacing:2.5px; text-transform:uppercase;
+    font-weight:600; margin-bottom:10px; opacity:0.7;
+  }
+  .saved-item[data-mode="stranger"] .saved-item-mode { color:var(--accent); }
+  .saved-item[data-mode="friend"]   .saved-item-mode { color:var(--blue); }
+  .saved-item[data-mode="self"]     .saved-item-mode { color:var(--warm); }
+  .saved-item-text {
+    font-family:var(--serif); font-size:15px; font-style:italic;
+    color:var(--text); line-height:1.5;
+  }
+  .saved-item-remove {
+    position:absolute; top:16px; right:16px;
+    background:none; border:none; color:var(--text3);
+    cursor:pointer; font-size:16px; transition:color 0.2s;
+  }
+  .saved-item-remove:hover { color:var(--text2); }
+
+  /* ---- LOADING STATE ---- */
+  .prompt-loading {
+    display:none;
+    align-items:center; justify-content:center;
+    height:80px;
+  }
+  .prompt-loading.show { display:flex; }
+  .loading-dots { display:flex; gap:6px; }
+  .loading-dots span {
+    width:5px; height:5px; border-radius:50%;
+    background:var(--text3);
+    animation:dot 1.2s ease-in-out infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay:0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay:0.4s; }
+  @keyframes dot {
+    0%,80%,100% { transform:scale(0.6); opacity:0.3; }
+    40% { transform:scale(1); opacity:1; }
+  }
+
+  /* ---- TOAST ---- */
+  .toast {
+    position:fixed; bottom:32px; left:50%; transform:translateX(-50%) translateY(24px);
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:3px; padding:12px 24px;
+    font-size:13px; color:var(--text2); white-space:nowrap;
+    opacity:0; transition:all 0.3s; pointer-events:none; z-index:500;
+  }
+  .toast.show {
+    opacity:1; transform:translateX(-50%) translateY(0);
+  }
+
+  /* ---- OFFLINE BADGE ---- */
+  .offline-notice {
+    display:none;
+    text-align:center; padding:8px 16px;
+    background:rgba(184,124,124,0.08); border-bottom:1px solid rgba(184,124,124,0.15);
+    font-size:12px; color:var(--warm);
+  }
+  .offline-notice.show { display:block; }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width:600px) {
+    header { padding:18px 20px; }
+    main { padding:32px 20px 60px; }
+    .prompt-card { padding:32px 24px; }
+    .prompt-actions { flex-direction:column; }
+    .back-link { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="offline-notice" id="offlineNotice">
+  Running offline — using local prompts
+</div>
+
+<!-- HEADER -->
+<header>
+  <a href="landing.html" class="logo">Elsewhere</a>
+  <div class="header-right">
+    <a href="landing.html" class="back-link">← Back</a>
+    <button class="saved-btn" onclick="toggleSavedPanel()">
+      Saved
+      <span class="saved-badge" id="savedBadge">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+
+  <!-- Mode Switcher -->
+  <div class="mode-switcher" role="tablist">
+    <button class="mode-btn active" data-mode="stranger" onclick="setMode('stranger')" role="tab">
+      <span class="mode-indicator"></span>
+      <span class="mode-name">Stranger</span>
+    </button>
+    <button class="mode-btn" data-mode="friend" onclick="setMode('friend')" role="tab">
+      <span class="mode-indicator"></span>
+      <span class="mode-name">Friend</span>
+    </button>
+    <button class="mode-btn" data-mode="self" onclick="setMode('self')" role="tab">
+      <span class="mode-indicator"></span>
+      <span class="mode-name">Self</span>
+    </button>
+  </div>
+
+  <!-- Prompt Area -->
+  <div class="prompt-area">
+    <div class="prompt-card" id="promptCard" data-mode="stranger">
+      <div>
+        <div class="prompt-mode-label" id="promptModeLabel">Stranger</div>
+        <span class="prompt-quote-mark">"</span>
+        <div class="prompt-text" id="promptText">
+          Loading your prompt…
+        </div>
+      </div>
+      <div class="prompt-meta">
+        <div class="prompt-context" id="promptContext"></div>
+        <button class="save-btn" id="saveBtn" onclick="savePrompt()">Save</button>
+      </div>
+    </div>
+
+    <div class="prompt-actions">
+      <button class="action-btn" onclick="skipPrompt()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+        Skip
+      </button>
+      <button class="action-btn primary" onclick="nextPrompt()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+        New prompt
+      </button>
+    </div>
+
+    <!-- Session Counter -->
+    <div class="session-counter">
+      <div class="counter-item">
+        <span class="counter-num" id="cntSeen">0</span>
+        <div class="counter-label">Seen</div>
+      </div>
+      <div class="counter-divider"></div>
+      <div class="counter-item">
+        <span class="counter-num" id="cntUsed">0</span>
+        <div class="counter-label">Used</div>
+      </div>
+      <div class="counter-divider"></div>
+      <div class="counter-item">
+        <span class="counter-num" id="cntSaved">0</span>
+        <div class="counter-label">Saved</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- SAVED PANEL -->
+<div class="panel-overlay" id="panelOverlay" onclick="toggleSavedPanel()"></div>
+<aside class="saved-panel" id="savedPanel">
+  <div class="panel-header">
+    <span class="panel-title">Saved prompts</span>
+    <button class="panel-close" onclick="toggleSavedPanel()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <div class="panel-body" id="savedList">
+    <div class="panel-empty">
+      <em>Nothing saved yet.</em>
+      When you find a prompt worth keeping,<br>hit Save.
+    </div>
+  </div>
+</aside>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────
+const API_BASE = 'http://localhost:3001/api';
+
+// ─── FALLBACK PROMPTS (if server is unreachable) ──
+const FALLBACK = {
+  stranger: [
+    { text: "Ask the person next to you what they're most excited about right now.", context: "Works at a café, queue, waiting room — anywhere humans gather.", id:'f-s-1' },
+    { text: "Compliment one specific detail you genuinely notice about someone near you.", context: "Observation + honesty = the rarest combination.", id:'f-s-2' },
+    { text: "Ask the barista or server what the most interesting thing that happened today was.", context: "People rarely get asked. They almost always have an answer.", id:'f-s-3' },
+    { text: "Ask someone what they're reading, watching, or listening to right now.", context: "Media is a window into a person's interior world.", id:'f-s-4' },
+    { text: "Ask a stranger what they'd do if they had a completely free afternoon today.", context: "The answer tells you everything about who someone actually is.", id:'f-s-5' },
+    { text: "Tell someone nearby one thing you find beautiful about the place you're both in.", context: "Vulnerability, not performance.", id:'f-s-6' },
+  ],
+  friend: [
+    { text: "What's something you've been meaning to tell me but haven't found the right moment?", context: "The question that creates the moment.", id:'f-f-1' },
+    { text: "Is there something in your life right now that you're not letting yourself be proud of?", context: "Give them permission to claim it.", id:'f-f-2' },
+    { text: "What's a version of your life you walked away from — and do you still think about it?", context: "The roads not taken live in us longer than we admit.", id:'f-f-3' },
+    { text: "When was the last time you felt truly seen by someone — and by whom?", context: "This one takes courage to ask and answer.", id:'f-f-4' },
+    { text: "What's something you believed five years ago that you've quietly given up on?", context: "Not an attack — an invitation to grieve together.", id:'f-f-5' },
+    { text: "What do I do that makes you feel like I'm really listening to you?", context: "Asking this is a gift. The answer makes you better.", id:'f-f-6' },
+  ],
+  self: [
+    { text: "What are you pretending not to notice in your life right now?", context: "Sit with this one. Don't let yourself rush to an answer.", id:'f-x-1' },
+    { text: "If you had no audience — no one watching, no one judging — how would today look different?", context: "The gap between those two lives is worth examining.", id:'f-x-2' },
+    { text: "What feeling have you been calling by a different name?", context: "Loneliness becomes 'being tired'. Fear becomes 'being busy'.", id:'f-x-3' },
+    { text: "What would you do more of if you stopped worrying about whether you were good at it?", context: "What you loved before you learned to judge yourself.", id:'f-x-4' },
+    { text: "Who have you been meaning to forgive — and what has keeping the grievance cost you?", context: "You don't have to tell them. Start by telling yourself.", id:'f-x-5' },
+    { text: "What part of yourself are you performing right now, and who are you performing it for?", context: "The mask is usually protecting something tender.", id:'f-x-6' },
+  ]
+};
+
+const MODE_LABELS = {
+  stranger: 'Stranger',
+  friend:   'Friend',
+  self:     'Self'
+};
+
+const MODE_CONTEXTS = {
+  stranger: 'A conversation with someone you haven\'t met yet.',
+  friend:   'A conversation worth having with someone who matters.',
+  self:     'A question for when you\'re alone and honest.'
+};
+
+// ─── STATE ────────────────────────────────────────
+let currentMode     = 'stranger';
+let currentPrompt   = null;
+let savedPrompts    = JSON.parse(localStorage.getItem('elsewhere_saved') || '[]');
+let stats           = JSON.parse(localStorage.getItem('elsewhere_stats') || '{"seen":0,"used":0}');
+let serverAvailable = false;
+let seenIds         = new Set();
+
+// ─── INIT ─────────────────────────────────────────
+async function init() {
+  // Probe server
+  try {
+    const r = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(2000) });
+    serverAvailable = r.ok;
+  } catch { serverAvailable = false; }
+
+  if (!serverAvailable) {
+    document.getElementById('offlineNotice').classList.add('show');
+  }
+
+  updateStats();
+  updateSavedBadge();
+  await fetchPrompt(currentMode, true);
+}
+
+// ─── FETCH PROMPT ─────────────────────────────────
+async function fetchPrompt(mode, initial = false) {
+  if (!initial) animateOut();
+
+  let prompt;
+  if (serverAvailable) {
+    try {
+      const r = await fetch(`${API_BASE}/prompt/${mode}`);
+      const data = await r.json();
+      prompt = data;
+    } catch {
+      serverAvailable = false;
+      document.getElementById('offlineNotice').classList.add('show');
+      prompt = localPrompt(mode);
+    }
+  } else {
+    prompt = localPrompt(mode);
+  }
+
+  currentPrompt = prompt;
+  seenIds.add(prompt.id);
+  stats.seen++;
+  saveStats();
+  updateStats();
+
+  if (!initial) {
+    await pause(350);
+    animateIn(prompt, mode);
+  } else {
+    renderPrompt(prompt, mode);
+  }
+}
+
+function localPrompt(mode) {
+  const pool = FALLBACK[mode];
+  // Prefer unseen
+  const unseen = pool.filter(p => !seenIds.has(p.id));
+  const choices = unseen.length ? unseen : pool;
+  return choices[Math.floor(Math.random() * choices.length)];
+}
+
+function renderPrompt(prompt, mode) {
+  const card  = document.getElementById('promptCard');
+  const label = document.getElementById('promptModeLabel');
+  const text  = document.getElementById('promptText');
+  const ctx   = document.getElementById('promptContext');
+  const save  = document.getElementById('saveBtn');
+
+  card.setAttribute('data-mode', mode);
+  label.textContent = MODE_LABELS[mode];
+  text.textContent  = prompt.text;
+  ctx.textContent   = prompt.context || MODE_CONTEXTS[mode];
+
+  // Update save state
+  const alreadySaved = savedPrompts.some(s => s.id === prompt.id);
+  save.textContent = alreadySaved ? 'Saved ✓' : 'Save';
+  save.classList.toggle('saved', alreadySaved);
+}
+
+// ─── ANIMATIONS ───────────────────────────────────
+function animateOut() {
+  document.getElementById('promptText').classList.add('fading');
+}
+async function animateIn(prompt, mode) {
+  const el = document.getElementById('promptText');
+  el.classList.remove('fading');
+  el.classList.add('entering');
+  renderPrompt(prompt, mode);
+  await pause(20);
+  el.classList.remove('entering');
+}
+function pause(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ─── ACTIONS ──────────────────────────────────────
+async function nextPrompt() {
+  stats.used++;
+  saveStats();
+  await fetchPrompt(currentMode);
+}
+
+async function skipPrompt() {
+  await fetchPrompt(currentMode);
+}
+
+async function setMode(mode) {
+  if (mode === currentMode) return;
+  currentMode = mode;
+
+  // Update buttons
+  document.querySelectorAll('.mode-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+
+  await fetchPrompt(mode);
+}
+
+// ─── SAVE ─────────────────────────────────────────
+function savePrompt() {
+  if (!currentPrompt) return;
+  const alreadySaved = savedPrompts.some(s => s.id === currentPrompt.id);
+  if (alreadySaved) {
+    showToast('Already saved.');
+    return;
+  }
+  savedPrompts.push({ ...currentPrompt, mode: currentMode, savedAt: Date.now() });
+  localStorage.setItem('elsewhere_saved', JSON.stringify(savedPrompts));
+  updateSavedBadge();
+  updateStats();
+  renderPrompt(currentPrompt, currentMode);
+  renderSavedList();
+  showToast('Saved for later.');
+}
+
+function removeFromSaved(id) {
+  savedPrompts = savedPrompts.filter(s => s.id !== id);
+  localStorage.setItem('elsewhere_saved', JSON.stringify(savedPrompts));
+  updateSavedBadge();
+  updateStats();
+  renderPrompt(currentPrompt, currentMode);
+  renderSavedList();
+}
+
+// ─── SAVED PANEL ──────────────────────────────────
+function toggleSavedPanel() {
+  const panel   = document.getElementById('savedPanel');
+  const overlay = document.getElementById('panelOverlay');
+  const open    = panel.classList.toggle('open');
+  overlay.classList.toggle('show', open);
+  if (open) renderSavedList();
+}
+
+function renderSavedList() {
+  const el = document.getElementById('savedList');
+  if (!savedPrompts.length) {
+    el.innerHTML = `<div class="panel-empty"><em>Nothing saved yet.</em>When you find a prompt worth keeping,<br>hit Save.</div>`;
+    return;
+  }
+  el.innerHTML = [...savedPrompts].reverse().map(p => `
+    <div class="saved-item" data-mode="${p.mode || 'stranger'}">
+      <div class="saved-item-mode">${MODE_LABELS[p.mode] || 'Prompt'}</div>
+      <div class="saved-item-text">${p.text}</div>
+      <button class="saved-item-remove" onclick="removeFromSaved('${p.id}')" title="Remove">×</button>
+    </div>
+  `).join('');
+}
+
+// ─── STATS ────────────────────────────────────────
+function updateStats() {
+  animateCounter('cntSeen',  stats.seen);
+  animateCounter('cntUsed',  stats.used);
+  animateCounter('cntSaved', savedPrompts.length);
+}
+
+function animateCounter(id, val) {
+  const el = document.getElementById(id);
+  const cur = parseInt(el.textContent, 10);
+  if (cur !== val) {
+    el.textContent = val;
+    el.classList.add('changed');
+    setTimeout(() => el.classList.remove('changed'), 400);
+  }
+}
+
+function saveStats() {
+  localStorage.setItem('elsewhere_stats', JSON.stringify(stats));
+}
+
+function updateSavedBadge() {
+  const badge = document.getElementById('savedBadge');
+  const n = savedPrompts.length;
+  badge.textContent = n;
+  badge.classList.toggle('show', n > 0);
+}
+
+// ─── TOAST ────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ─── START ────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

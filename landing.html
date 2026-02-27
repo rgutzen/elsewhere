@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elsewhere — Be somewhere that matters</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:      #090708;
+    --surface: #110e0f;
+    --surface2:#1c1719;
+    --border:  rgba(255,255,255,0.055);
+    --accent:  #c9a87c;
+    --accent2: #7c8a9e;
+    --dim:     rgba(201,168,124,0.08);
+    --text:    #d8d0c8;
+    --text2:   #7a7068;
+    --text3:   #4a4440;
+    --radius:  4px;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans:  'Inter', -apple-system, sans-serif;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior:smooth; }
+
+  /* grain overlay */
+  body::before {
+    content:''; position:fixed; inset:0; z-index:999; pointer-events:none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.45;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ---- NAV ---- */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    padding: 24px 48px;
+    display:flex; align-items:center; justify-content:space-between;
+    transition: padding 0.4s, background 0.4s;
+  }
+  nav.scrolled {
+    padding: 16px 48px;
+    background: rgba(9,7,8,0.9);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo {
+    font-family: var(--serif);
+    font-size: 20px; font-weight: 700;
+    color: var(--text); letter-spacing: 0.5px;
+    text-decoration:none;
+  }
+  .nav-links { display:flex; gap:36px; align-items:center; }
+  .nav-links a {
+    color: var(--text2); text-decoration:none; font-size:13px;
+    font-weight:500; letter-spacing:0.3px;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color:var(--text); }
+  .nav-cta {
+    color: var(--accent) !important;
+    border: 1px solid rgba(201,168,124,0.3) !important;
+    padding: 8px 20px; border-radius: 2px;
+    transition: background 0.2s, border-color 0.2s !important;
+  }
+  .nav-cta:hover {
+    background: rgba(201,168,124,0.08) !important;
+    border-color: rgba(201,168,124,0.5) !important;
+  }
+
+  /* ---- HERO ---- */
+  .hero {
+    min-height: 100vh;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding: 120px 48px 80px;
+    position:relative; overflow:hidden;
+    text-align:center;
+  }
+
+  /* Ambient glow — barely visible */
+  .hero::after {
+    content:''; position:absolute;
+    width:800px; height:800px;
+    top:50%; left:50%; transform:translate(-50%,-50%);
+    background: radial-gradient(circle, rgba(201,168,124,0.04) 0%, transparent 65%);
+    pointer-events:none;
+  }
+
+  /* Floating particles */
+  .particles {
+    position:absolute; inset:0; pointer-events:none; overflow:hidden;
+  }
+  .particle {
+    position:absolute;
+    width:1px; height:1px;
+    background:var(--accent);
+    border-radius:50%;
+    opacity:0;
+    animation: float var(--dur, 12s) ease-in-out infinite;
+    animation-delay: var(--delay, 0s);
+  }
+  @keyframes float {
+    0%   { transform: translateY(100vh) translateX(0); opacity:0; }
+    10%  { opacity: 0.3; }
+    90%  { opacity: 0.15; }
+    100% { transform: translateY(-10vh) translateX(var(--drift, 20px)); opacity:0; }
+  }
+
+  .eyebrow {
+    font-family:var(--sans);
+    font-size:11px; font-weight:600;
+    letter-spacing:3px; text-transform:uppercase;
+    color: var(--text3); margin-bottom:32px;
+    position:relative; z-index:1;
+    animation: fadeIn 1s ease-out 0.3s both;
+  }
+
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(52px, 8vw, 108px);
+    font-weight: 900;
+    line-height: 0.98;
+    letter-spacing: -2px;
+    margin-bottom: 0;
+    position:relative; z-index:1;
+    animation: fadeIn 1s ease-out 0.5s both;
+  }
+  .hero h1 .dim-word {
+    color: var(--text3);
+  }
+  .hero h1 .accent-word {
+    color: var(--accent);
+    font-style: italic;
+  }
+  .hero h1 .break { display:block; }
+
+  .hero-rule {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, transparent, var(--border), transparent);
+    margin: 36px auto;
+    position:relative; z-index:1;
+    animation: fadeIn 1s ease-out 0.7s both;
+  }
+
+  .hero-sub {
+    font-size: 15px; color: var(--text2);
+    max-width: 420px; margin: 0 auto 48px;
+    line-height: 1.8; font-weight:400;
+    position:relative; z-index:1;
+    animation: fadeIn 1s ease-out 0.9s both;
+  }
+  .hero-sub em {
+    color: var(--text); font-style:normal;
+  }
+
+  .hero-actions {
+    display:flex; gap:16px; justify-content:center; flex-wrap:wrap;
+    position:relative; z-index:1;
+    animation: fadeIn 1s ease-out 1.1s both;
+  }
+  .btn-ghost {
+    padding: 14px 40px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-size:14px; font-weight:500;
+    color: var(--text2); text-decoration:none;
+    transition: all 0.25s; letter-spacing:0.3px;
+  }
+  .btn-ghost:hover {
+    border-color: rgba(255,255,255,0.15);
+    color: var(--text);
+    background: rgba(255,255,255,0.025);
+  }
+  .btn-accent {
+    padding: 14px 40px;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 2px;
+    font-size:14px; font-weight:600;
+    color: #0a0708; text-decoration:none;
+    transition: all 0.25s; letter-spacing:0.3px;
+  }
+  .btn-accent:hover {
+    background: #dbb98d;
+    box-shadow: 0 8px 32px rgba(201,168,124,0.2);
+    transform: translateY(-1px);
+  }
+
+  .scroll-hint {
+    position:absolute; bottom:32px; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    color:var(--text3); font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    animation: fadeIn 1s ease-out 1.4s both;
+    z-index:1;
+  }
+  .scroll-line {
+    width:1px; height:36px;
+    background: linear-gradient(to bottom, var(--text3), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%,100% { opacity:0.3; } 50% { opacity:0.8; }
+  }
+
+  /* ---- CONVICTION ---- */
+  .conviction {
+    padding: 120px 48px;
+    max-width:900px; margin:0 auto;
+  }
+  .conviction-block {
+    display:grid; grid-template-columns: 80px 1fr; gap:32px;
+    margin-bottom:72px; opacity:0; transform:translateY(24px);
+    transition:opacity 0.7s ease-out, transform 0.7s ease-out;
+  }
+  .conviction-block.visible { opacity:1; transform:translateY(0); }
+  .conviction-num {
+    font-family:var(--serif); font-size:48px; font-weight:400;
+    color:var(--text3); line-height:1; padding-top:4px;
+  }
+  .conviction-text h3 {
+    font-family:var(--serif); font-size:28px; font-weight:700;
+    margin-bottom:12px; letter-spacing:-0.5px;
+  }
+  .conviction-text p {
+    font-size:15px; color:var(--text2); line-height:1.8;
+  }
+  .conviction-text .stat-callout {
+    display:inline-block; margin-top:16px;
+    border-left:2px solid rgba(201,168,124,0.3);
+    padding-left:16px;
+    font-size:13px; color:var(--text3); font-style:italic;
+    line-height:1.7;
+  }
+
+  /* ---- DIVIDER ---- */
+  .section-divider {
+    padding:0 48px; max-width:900px; margin:0 auto;
+    display:flex; align-items:center; gap:24px;
+    opacity:0; transform:translateY(16px);
+    transition:opacity 0.7s, transform 0.7s;
+  }
+  .section-divider.visible { opacity:1; transform:translateY(0); }
+  .divider-line { flex:1; height:1px; background:var(--border); }
+  .divider-label {
+    font-size:11px; letter-spacing:3px; text-transform:uppercase;
+    color:var(--text3); white-space:nowrap;
+  }
+
+  /* ---- MANIFESTO ---- */
+  .manifesto {
+    padding: 80px 48px 120px;
+    max-width:900px; margin:0 auto;
+    text-align:center;
+  }
+  .manifesto-quote {
+    font-family:var(--serif);
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight:400; font-style:italic;
+    line-height:1.3; letter-spacing:-0.5px;
+    color:var(--text);
+    opacity:0; transform:translateY(24px);
+    transition:opacity 0.9s ease-out, transform 0.9s ease-out;
+  }
+  .manifesto-quote.visible { opacity:1; transform:translateY(0); }
+  .manifesto-quote span { color:var(--accent); }
+  .manifesto-attribution {
+    margin-top:24px; font-size:12px; letter-spacing:2px;
+    text-transform:uppercase; color:var(--text3);
+    opacity:0; transition:opacity 0.9s ease-out 0.3s;
+  }
+  .manifesto-attribution.visible { opacity:1; }
+
+  /* ---- FEATURE PREVIEW ---- */
+  .feature-section {
+    padding: 80px 48px 120px;
+    position:relative; overflow:hidden;
+  }
+  .feature-section::before {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(180deg, transparent, var(--surface) 30%, var(--surface) 70%, transparent);
+    pointer-events:none;
+  }
+  .feature-inner {
+    max-width:1000px; margin:0 auto;
+    display:grid; grid-template-columns:1fr 1fr; gap:80px;
+    align-items:center; position:relative; z-index:1;
+  }
+  .feature-copy {
+    opacity:0; transform:translateX(-24px);
+    transition:opacity 0.8s ease-out, transform 0.8s ease-out;
+  }
+  .feature-copy.visible { opacity:1; transform:translateX(0); }
+  .section-label {
+    font-size:11px; font-weight:600; letter-spacing:3px;
+    text-transform:uppercase; color:var(--accent);
+    opacity:0.7; margin-bottom:16px;
+  }
+  .feature-copy h2 {
+    font-family:var(--serif);
+    font-size:clamp(28px,4vw,44px); font-weight:700;
+    letter-spacing:-0.5px; margin-bottom:20px;
+    line-height:1.15;
+  }
+  .feature-copy p {
+    font-size:15px; color:var(--text2); line-height:1.8;
+    margin-bottom:28px;
+  }
+  .feature-modes {
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .feature-mode {
+    display:flex; align-items:center; gap:16px;
+    padding:12px 16px;
+    border:1px solid var(--border); border-radius:2px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .feature-mode:hover {
+    border-color:rgba(201,168,124,0.2);
+    background:rgba(201,168,124,0.03);
+  }
+  .mode-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--accent); opacity:0.5; flex-shrink:0;
+  }
+  .mode-dot.blue { background:#7c8a9e; }
+  .mode-dot.warm { background:#b87c7c; }
+  .mode-label { font-size:13px; font-weight:600; color:var(--text); }
+  .mode-desc { font-size:12px; color:var(--text3); margin-top:2px; }
+
+  /* Phone mockup */
+  .feature-phone {
+    display:flex; justify-content:center;
+    opacity:0; transform:translateX(24px);
+    transition:opacity 0.8s ease-out 0.2s, transform 0.8s ease-out 0.2s;
+  }
+  .feature-phone.visible { opacity:1; transform:translateX(0); }
+  .phone {
+    width: 260px; height:520px;
+    background:var(--surface2);
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:32px;
+    overflow:hidden; position:relative;
+    box-shadow:
+      0 40px 80px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .phone-bar {
+    height:1px; background:linear-gradient(90deg,transparent,var(--border),transparent);
+    margin: 28px 20px 0;
+  }
+  .phone-inner {
+    padding:24px 20px;
+    display:flex; flex-direction:column;
+    height:calc(100% - 30px); justify-content:space-between;
+  }
+  .phone-mode-tag {
+    font-size:10px; letter-spacing:2.5px; text-transform:uppercase;
+    color:var(--accent); opacity:0.8; font-weight:600;
+    margin-bottom:20px;
+  }
+  .phone-prompt-text {
+    font-family:var(--serif);
+    font-size:18px; font-weight:400; font-style:italic;
+    color:var(--text); line-height:1.5;
+    flex:1; display:flex; align-items:center;
+    animation:promptFade 6s ease-in-out infinite;
+  }
+  @keyframes promptFade {
+    0%,15% { opacity:0; transform:translateY(8px); }
+    25%,75% { opacity:1; transform:translateY(0); }
+    85%,100% { opacity:0; transform:translateY(-8px); }
+  }
+  .phone-actions {
+    display:flex; gap:8px; justify-content:space-between;
+    align-items:center;
+  }
+  .phone-btn {
+    flex:1; padding:10px;
+    border:1px solid var(--border); border-radius:2px;
+    text-align:center; font-size:11px;
+    color:var(--text3); letter-spacing:1px;
+  }
+  .phone-btn.primary {
+    border-color:rgba(201,168,124,0.3);
+    color:var(--accent); background:rgba(201,168,124,0.06);
+  }
+  .phone-progress {
+    height:1px; margin:16px 0;
+    background:var(--border); border-radius:1px; overflow:hidden;
+  }
+  .phone-progress-fill {
+    height:100%; width:40%;
+    background:linear-gradient(90deg, var(--accent), var(--accent2));
+    animation: progressPulse 4s ease-in-out infinite;
+  }
+  @keyframes progressPulse {
+    0%,100% { width:30%; } 50% { width:65%; }
+  }
+
+  /* ---- DARK STATS ---- */
+  .stats-section {
+    padding:80px 48px;
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+  }
+  .stats-inner {
+    max-width:900px; margin:0 auto;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+  }
+  .stat-block {
+    background:var(--bg);
+    padding:48px 36px;
+    opacity:0; transform:translateY(16px);
+    transition:opacity 0.7s ease-out, transform 0.7s ease-out;
+  }
+  .stat-block.visible { opacity:1; transform:translateY(0); }
+  .stat-num {
+    font-family:var(--serif); font-size:52px; font-weight:700;
+    color:var(--text); letter-spacing:-2px; display:block;
+    margin-bottom:8px;
+  }
+  .stat-num.dim { color:var(--text3); }
+  .stat-label { font-size:12px; color:var(--text3); line-height:1.6; }
+  .stat-context {
+    font-size:11px; color:var(--text3); margin-top:8px;
+    font-style:italic; opacity:0.7;
+  }
+
+  /* ---- COMMUNITY IDEAS ---- */
+  .community-section {
+    padding:100px 48px;
+    position:relative;
+  }
+  .community-inner {
+    max-width:1000px; margin:0 auto;
+  }
+  .community-section .section-label { margin-bottom:12px; }
+  .community-section h2 {
+    font-family:var(--serif);
+    font-size:clamp(28px,4vw,44px); font-weight:700;
+    letter-spacing:-0.5px; margin-bottom:8px; line-height:1.15;
+  }
+  .community-section .section-subtitle {
+    font-size:15px; color:var(--text2); line-height:1.8;
+    max-width:560px; margin-bottom:56px;
+  }
+  .ideas-grid {
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:16px;
+  }
+  .idea-card {
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:32px 28px;
+    background:var(--surface);
+    position:relative; overflow:hidden;
+    transition:border-color 0.3s, transform 0.2s;
+    opacity:0; transform:translateY(20px);
+    transition:opacity 0.6s ease-out, transform 0.6s ease-out, border-color 0.3s;
+  }
+  .idea-card.visible { opacity:1; transform:translateY(0); }
+  .idea-card:hover {
+    border-color:rgba(201,168,124,0.18);
+    transform:translateY(-3px);
+  }
+  .idea-card::before {
+    content:''; position:absolute; top:0; left:0; right:0;
+    height:1px;
+    background:linear-gradient(90deg, transparent, var(--card-accent, rgba(201,168,124,0.2)), transparent);
+  }
+  .idea-num {
+    font-family:var(--serif); font-size:36px; font-weight:400;
+    color:var(--text3); line-height:1; margin-bottom:16px;
+    opacity:0.5;
+  }
+  .idea-card h3 {
+    font-family:var(--serif); font-size:18px; font-weight:700;
+    margin-bottom:10px; letter-spacing:-0.3px;
+  }
+  .idea-card p {
+    font-size:13px; color:var(--text2); line-height:1.7;
+    margin-bottom:16px;
+  }
+  .idea-tag {
+    display:inline-block;
+    font-size:10px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--text3); font-weight:600;
+    padding:5px 10px;
+    border:1px solid var(--border); border-radius:2px;
+  }
+  .idea-card:nth-child(1) .idea-tag { color:var(--accent); border-color:rgba(201,168,124,0.2); }
+  .idea-card:nth-child(2) .idea-tag { color:var(--accent2); border-color:rgba(124,138,158,0.2); }
+  .idea-card:nth-child(3) .idea-tag { color:#b87c7c; border-color:rgba(184,124,124,0.2); }
+  .idea-card:nth-child(4) .idea-tag { color:var(--accent); border-color:rgba(201,168,124,0.2); }
+  .idea-card:nth-child(5) .idea-tag { color:var(--accent2); border-color:rgba(124,138,158,0.2); }
+  .idea-card:nth-child(6) .idea-tag { color:#b87c7c; border-color:rgba(184,124,124,0.2); }
+
+  .community-coda {
+    margin-top:56px; padding-top:40px;
+    border-top:1px solid var(--border);
+    display:flex; align-items:flex-start; gap:24px;
+    max-width:700px;
+    opacity:0; transform:translateY(16px);
+    transition:opacity 0.7s ease-out, transform 0.7s ease-out;
+  }
+  .community-coda.visible { opacity:1; transform:translateY(0); }
+  .coda-mark {
+    font-family:var(--serif); font-size:48px; font-weight:700;
+    color:var(--text3); line-height:1; flex-shrink:0; opacity:0.4;
+  }
+  .coda-text {
+    font-family:var(--serif); font-size:17px; font-style:italic;
+    color:var(--text2); line-height:1.7;
+  }
+  .coda-text span { color:var(--text); font-style:normal; }
+
+  /* ---- CTA SECTION ---- */
+  .cta-section {
+    padding:160px 48px;
+    text-align:center; position:relative; overflow:hidden;
+  }
+  .cta-section::before {
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(ellipse 80% 50% at 50% 50%, rgba(201,168,124,0.04), transparent 70%);
+    pointer-events:none;
+  }
+  .cta-section h2 {
+    font-family:var(--serif);
+    font-size:clamp(36px, 6vw, 72px);
+    font-weight:900; letter-spacing:-2px;
+    margin-bottom:20px; position:relative; z-index:1;
+    line-height:1.0;
+    opacity:0; transform:translateY(24px);
+    transition:opacity 0.9s ease-out, transform 0.9s ease-out;
+  }
+  .cta-section h2.visible { opacity:1; transform:translateY(0); }
+  .cta-section h2 em { font-style:italic; color:var(--accent); }
+  .cta-section p {
+    font-size:16px; color:var(--text2); margin-bottom:48px;
+    position:relative; z-index:1;
+    opacity:0; transition:opacity 0.9s ease-out 0.2s;
+  }
+  .cta-section p.visible { opacity:1; }
+  .cta-actions {
+    display:flex; gap:16px; justify-content:center; flex-wrap:wrap;
+    position:relative; z-index:1;
+    opacity:0; transition:opacity 0.9s ease-out 0.4s;
+  }
+  .cta-actions.visible { opacity:1; }
+
+  /* ---- FOOTER ---- */
+  footer {
+    padding:32px 48px;
+    border-top:1px solid var(--border);
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:16px;
+  }
+  footer p { font-size:12px; color:var(--text3); }
+  footer a { color:var(--text3); text-decoration:none; }
+  footer a:hover { color:var(--accent); }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(12px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width:860px) {
+    nav { padding:20px 24px; }
+    nav.scrolled { padding:14px 24px; }
+    .nav-links a:not(.nav-cta) { display:none; }
+    .hero { padding:100px 24px 60px; }
+    .conviction, .manifesto, .feature-section, .stats-section, .community-section, .cta-section {
+      padding-left:24px; padding-right:24px;
+    }
+    .feature-inner { grid-template-columns:1fr; gap:48px; }
+    .feature-phone { order:-1; }
+    .stats-inner { grid-template-columns:1fr; }
+    .ideas-grid { grid-template-columns:1fr; }
+    footer { flex-direction:column; text-align:center; padding:24px; }
+  }
+  @media (max-width:860px) and (min-width:481px) {
+    .ideas-grid { grid-template-columns:repeat(2, 1fr); }
+  }
+  @media (max-width:480px) {
+    .conviction-block { grid-template-columns:1fr; gap:8px; }
+    .conviction-num { font-size:32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- GRAIN & PARTICLES -->
+<div class="particles" id="particles"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="landing.html" class="nav-logo">Elsewhere</a>
+  <div class="nav-links">
+    <a href="#why">Why</a>
+    <a href="#prompts">The Prompts</a>
+    <a href="#community">Community</a>
+    <a href="app.html" class="nav-cta">Open App</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="eyebrow">Somewhere better is waiting</div>
+  <h1>
+    <span class="break dim-word">Life is short.</span>
+    <span class="break accent-word">Go outside.</span>
+    <span class="break dim-word">Talk to people.</span>
+  </h1>
+  <div class="hero-rule"></div>
+  <p class="hero-sub">
+    You've already spent <em>three hours</em> on your phone today.
+    You haven't had a real conversation in days.
+    Elsewhere is what happens when you put it down.
+  </p>
+  <div class="hero-actions">
+    <a href="app.html" class="btn-accent">Start somewhere real</a>
+    <a href="#why" class="btn-ghost">Why this exists</a>
+  </div>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- CONVICTION -->
+<section id="why" style="padding:0;">
+  <div class="conviction">
+
+    <div class="section-divider fade-obs">
+      <div class="divider-line"></div>
+      <span class="divider-label">The Problem</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <div style="height:64px;"></div>
+
+    <div class="conviction-block fade-obs">
+      <div class="conviction-num">01</div>
+      <div class="conviction-text">
+        <h3>Instagram turned life into content.</h3>
+        <p>
+          You stopped experiencing moments and started capturing them.
+          You built a curated self-image and forgot what you actually feel.
+          The feed never ends, the algorithm always wins, and somewhere in it you got lost.
+        </p>
+        <span class="stat-callout">
+          Average person spends 2h 27m on social media daily.<br>
+          That's 37 full days a year — watching other people live.
+        </span>
+      </div>
+    </div>
+
+    <div class="conviction-block fade-obs" style="transition-delay:0.1s">
+      <div class="conviction-num">02</div>
+      <div class="conviction-text">
+        <h3>AI gave us someone to talk to instead of people.</h3>
+        <p>
+          You can have a perfectly satisfying conversation without ever leaving your room.
+          Without eye contact, without awkward silences, without the vulnerability that makes
+          connection real. It's frictionless. That's the problem.
+        </p>
+        <span class="stat-callout">
+          Loneliness rose 30% in the decade before AI chatbots even existed.<br>
+          We were already retreating. Now we have a reason.
+        </span>
+      </div>
+    </div>
+
+    <div class="conviction-block fade-obs" style="transition-delay:0.2s">
+      <div class="conviction-num">03</div>
+      <div class="conviction-text">
+        <h3>The antidote is friction.</h3>
+        <p>
+          Real connection is hard. It requires showing up, stumbling over your words,
+          not knowing how it ends. Elsewhere doesn't optimize that away.
+          It just gives you a way to start. Then it gets out of the way.
+        </p>
+        <span class="stat-callout">
+          A single genuine conversation raises mood for hours.<br>
+          A scroll session keeps you needing the next scroll.
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MANIFESTO QUOTE -->
+<div class="manifesto">
+  <blockquote class="manifesto-quote fade-obs">
+    "The most radical thing you can do<br>
+    is <span>pay attention to one person</span><br>
+    until they feel it."
+  </blockquote>
+  <p class="manifesto-attribution fade-obs">— the premise of this project</p>
+</div>
+
+<!-- FEATURE SECTION -->
+<section id="prompts" class="feature-section">
+  <div class="feature-inner">
+    <div class="feature-copy fade-obs">
+      <div class="section-label">The Prompts</div>
+      <h2>Three ways to start something real.</h2>
+      <p>
+        Elsewhere generates a single prompt. You close the app and go use it.
+        No feed. No likes. No profile. Just a question with the courage to ask it.
+      </p>
+      <div class="feature-modes">
+        <div class="feature-mode">
+          <div class="mode-dot"></div>
+          <div>
+            <div class="mode-label">Stranger</div>
+            <div class="mode-desc">Break the surface with someone you've never spoken to</div>
+          </div>
+        </div>
+        <div class="feature-mode">
+          <div class="mode-dot blue"></div>
+          <div>
+            <div class="mode-label">Friend</div>
+            <div class="mode-desc">Go deeper with someone who deserves more than small talk</div>
+          </div>
+        </div>
+        <div class="feature-mode">
+          <div class="mode-dot warm"></div>
+          <div>
+            <div class="mode-label">Self</div>
+            <div class="mode-desc">Ask the question you've been avoiding privately</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="feature-phone fade-obs">
+      <div class="phone">
+        <div class="phone-bar"></div>
+        <div class="phone-inner">
+          <div>
+            <div class="phone-mode-tag" id="phoneModeTag">Stranger</div>
+            <div class="phone-prompt-text" id="phonePromptText">
+              "Ask the person next to you what they're most excited about right now."
+            </div>
+          </div>
+          <div>
+            <div class="phone-progress"><div class="phone-progress-fill"></div></div>
+            <div class="phone-actions">
+              <div class="phone-btn">Save</div>
+              <div class="phone-btn primary">New prompt</div>
+              <div class="phone-btn">Done ↗</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-section">
+  <div class="stats-inner">
+    <div class="stat-block fade-obs">
+      <span class="stat-num dim">7 hr</span>
+      <div class="stat-label">Average screen time. Daily.</div>
+      <div class="stat-context">Not including work. Just chosen numbing.</div>
+    </div>
+    <div class="stat-block fade-obs" style="transition-delay:0.12s">
+      <span class="stat-num">17 min</span>
+      <div class="stat-label">Average meaningful conversation. Daily.</div>
+      <div class="stat-context">That's down 40% from twenty years ago.</div>
+    </div>
+    <div class="stat-block fade-obs" style="transition-delay:0.24s">
+      <span class="stat-num dim">0</span>
+      <div class="stat-label">Accounts. No followers. No feed.</div>
+      <div class="stat-context">Elsewhere remembers nothing. That's the point.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COMMUNITY IDEAS -->
+<section class="community-section" id="community">
+  <div class="community-inner">
+    <div class="section-label fade-obs">Beyond the app</div>
+    <h2 class="fade-obs">Build community where you already are.</h2>
+    <p class="section-subtitle fade-obs">
+      Elsewhere gives you a prompt. The rest happens in the world.
+      Here are ways people are turning single conversations into lasting local connection.
+    </p>
+
+    <div class="ideas-grid">
+
+      <div class="idea-card fade-obs">
+        <div class="idea-num">01</div>
+        <h3>Walk &amp; Talk Loops</h3>
+        <p>Pick a 20-minute route near your home. Walk it with one person every week.
+        No agenda, no destination — just a loop. The repetition builds trust faster than any planned event.</p>
+        <span class="idea-tag">Stranger &rarr; Regular</span>
+      </div>
+
+      <div class="idea-card fade-obs" style="transition-delay:0.08s">
+        <div class="idea-num">02</div>
+        <h3>The Third Place Table</h3>
+        <p>Claim a recurring time at your local caf&eacute; or library. Same spot, same hour, every week.
+        Tell three people. Anyone can show up. No RSVP, no group chat. Just presence.</p>
+        <span class="idea-tag">Low Effort &middot; High Return</span>
+      </div>
+
+      <div class="idea-card fade-obs" style="transition-delay:0.16s">
+        <div class="idea-num">03</div>
+        <h3>Prompt Dinners</h3>
+        <p>Cook for 4&ndash;6 people. Place an Elsewhere prompt card at each seat.
+        Rule: no small talk until everyone has answered their prompt. Conversations go deeper, faster.</p>
+        <span class="idea-tag">Use with Friends</span>
+      </div>
+
+      <div class="idea-card fade-obs" style="transition-delay:0.24s">
+        <div class="idea-num">04</div>
+        <h3>The Neighbor Knock</h3>
+        <p>Once a month, knock on a door within 50 meters of yours.
+        Bring something small — baked goods, a plant cutting, a note.
+        You don't need a reason. Proximity <em>is</em> the reason.</p>
+        <span class="idea-tag">Uncomfortable &middot; Worth It</span>
+      </div>
+
+      <div class="idea-card fade-obs" style="transition-delay:0.32s">
+        <div class="idea-num">05</div>
+        <h3>Skill Swaps</h3>
+        <p>Post a handwritten note at your local board: "I'll teach you [your skill] if you teach me [anything]."
+        One meeting, one hour, no money. The asymmetry of skills creates instant respect.</p>
+        <span class="idea-tag">Analog Only</span>
+      </div>
+
+      <div class="idea-card fade-obs" style="transition-delay:0.40s">
+        <div class="idea-num">06</div>
+        <h3>Silent Sits</h3>
+        <p>Invite 3&ndash;8 people to sit in the same room for 20 minutes without phones.
+        No meditation instructions — just shared quiet. Talk after if it feels right.
+        Silence together is one of the most radical forms of trust.</p>
+        <span class="idea-tag">Deceptively Powerful</span>
+      </div>
+
+    </div>
+
+    <div class="community-coda fade-obs">
+      <div class="coda-mark">&ldquo;</div>
+      <div class="coda-text">
+        None of these need an app, a platform, or permission.
+        They need one person who decides to start. <span>Be that person.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="cta">
+  <h2 class="fade-obs">Put the phone<br>down. <em>Almost.</em></h2>
+  <p class="fade-obs">Get your prompt. Then go.</p>
+  <div class="cta-actions fade-obs">
+    <a href="app.html" class="btn-accent">Open Elsewhere</a>
+    <a href="#why" class="btn-ghost">Read Again</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Elsewhere &mdash; a concept that doesn't want your attention</p>
+  <p>
+    <a href="app.html">Open app</a>
+    &nbsp;&middot;&nbsp;
+    <a href="landing.html">Landing</a>
+  </p>
+</footer>
+
+<script>
+// Floating particles
+(function() {
+  const container = document.getElementById('particles');
+  const n = 18;
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = (Math.random() * 100) + '%';
+    p.style.setProperty('--dur', (10 + Math.random() * 14) + 's');
+    p.style.setProperty('--delay', (Math.random() * 12) + 's');
+    p.style.setProperty('--drift', ((Math.random() - 0.5) * 80) + 'px');
+    p.style.width = p.style.height = (Math.random() < 0.5 ? '1px' : '2px');
+    container.appendChild(p);
+  }
+})();
+
+// Nav shrink
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 60);
+}, { passive: true });
+
+// Fade-in observer
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.fade-obs').forEach(el => io.observe(el));
+
+// Phone mockup cycling prompts
+const demoPrompts = [
+  { mode:'Stranger', text:'"Ask the person next to you what they\'re most excited about right now."' },
+  { mode:'Friend',   text:'"What\'s something you\'ve been meaning to tell me but haven\'t found the moment for?"' },
+  { mode:'Self',     text:'"What are you pretending not to notice in your life right now?"' },
+  { mode:'Stranger', text:'"Compliment one thing you genuinely notice about someone around you."' },
+  { mode:'Self',     text:'"If you had no audience, how would today look different?"' },
+];
+let dIdx = 0;
+const modeTag = document.getElementById('phoneModeTag');
+const promptTxt = document.getElementById('phonePromptText');
+setInterval(() => {
+  dIdx = (dIdx + 1) % demoPrompts.length;
+  const d = demoPrompts[dIdx];
+  promptTxt.style.animation = 'none';
+  promptTxt.offsetHeight; // reflow
+  promptTxt.style.animation = 'promptFade 6s ease-in-out infinite';
+  promptTxt.textContent = d.text;
+  modeTag.textContent = d.mode;
+}, 5000);
+</script>
+</body>
+</html>
